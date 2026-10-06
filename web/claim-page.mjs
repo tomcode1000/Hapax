@@ -1,5 +1,5 @@
 import { ic } from './build.mjs'
-import { chip, pill, card, cardHead, row, info, top, appPage } from './app-shell.mjs'
+import { card, cardHead, row, info, recipientPage } from './app-shell.mjs'
 
 /**
  * The recipient's claim page: three steps, in the Stellar Disbursement
@@ -18,12 +18,12 @@ const stepHead = (n, title, key) =>
   `<div class="hx-step-head"><span class="hx-step-n" data-h="${key}-n">${n}</span><h2 class="ap-h2">${title}</h2><span class="hx-step-done" data-h="${key}-done" hidden>${ic('checkCircle')} Done</span></div>`
 
 export const claim = () =>
-  appPage({
-    title: 'Claim',
-    current: 'recipient',
+  recipientPage({
+    title: 'Claim your aid',
     body: ' data-page="claim"',
     scripts: '<script src="assets/wallet.js"></script>',
-    main: `${top(`<div>${chip('Recipient')}<h1 class="ap-h1">Claim your aid</h1></div>`, pill('Checking…', '', 'net-pill'))}
+    main: `<h1 class="ap-h1 hx-rtitle">Claim your aid</h1>
+<p class="ap-sub hx-rsub">You were enrolled by an aid agency. Verify it’s you, choose your wallet, and claim. It takes about a minute.</p>
 
 <div class="ap-cols hx-claim">
   <div class="ap-stack">

@@ -1497,3 +1497,128 @@
 .hx-again {
   margin-top: 18px;
 }
+
+/* ------------------------------------------- recipient surface (no rail) -- */
+
+.hx-recipient {
+  background: var(--ground);
+}
+
+.hx-rhead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.hx-rhead-in,
+.hx-rmain,
+.hx-rfoot-in {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+.hx-rhead-in {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 64px;
+}
+
+.hx-rhead .brand {
+  font-size: 19px;
+}
+
+.hx-rsecure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--good-wash);
+  color: var(--good);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hx-rsecure svg.i {
+  width: 14px;
+  height: 14px;
+}
+
+.hx-rhead-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.hx-rtheme {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.hx-rtheme svg.i {
+  width: 18px;
+  height: 18px;
+}
+
+.hx-rmain {
+  padding-block: 34px 48px;
+}
+
+.hx-rtitle {
+  margin: 0;
+}
+
+.hx-rsub {
+  margin: 8px 0 22px;
+  max-width: 40em;
+}
+
+.hx-rfoot {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.hx-rfoot-in {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-block: 20px;
+}
+
+.hx-rfoot-in > svg.i {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+.hx-rfoot p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+@media (max-width: 560px) {
+  .hx-rsecure {
+    display: none;
+  }
+  .hx-rhead-in,
+  .hx-rmain,
+  .hx-rfoot-in {
+    padding-inline: 16px;
+  }
+}

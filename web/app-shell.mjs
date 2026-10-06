@@ -45,7 +45,6 @@ const empty = (text) => `<p class="ap-empty">${text}</p>`
 const NAV = [
   ['building', 'Agency A', 'agency.html?a=a'],
   ['building', 'Agency B', 'agency.html?a=b'],
-  ['phone', 'Recipient', 'claim.html'],
   ['book', 'How it works', 'index.html'],
 ]
 
@@ -98,4 +97,48 @@ ${scripts}
 </body>
 </html>`
 
-export { chip, pill, tile, card, cardHead, stat, metric, row, info, empty, top, appPage }
+/**
+ * The recipient's page: a separate surface from the agency console.
+ *
+ * A person arrives here from their invite email. They should never see
+ * "Agency A / Agency B" or any staff navigation, so this shell has only the
+ * brand, a security note, the theme control and a help footer. It is built
+ * from the same tokens and ap-* components, so it is still one product.
+ */
+const recipientPage = ({ title, main, body = '', scripts = '' }) => `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>${title} · Hapax</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg"/>
+${FONTS}
+<link rel="stylesheet" href="assets/quorum.css"/>
+<link rel="stylesheet" href="assets/app.css"/>
+<link rel="stylesheet" href="assets/hapax.css"/>
+${PREPAINT}
+</head>
+<body${body} class="hx-recipient">
+<header class="hx-rhead"><div class="hx-rhead-in">
+  <a class="brand" href="claim.html"><span class="mark">${MARK}</span>Hapax</a>
+  <span class="hx-rsecure">${ic('lock')} Private claim</span>
+  <div class="hx-rhead-end">
+    <span class="ap-pill" data-h="net-pill">Checking…</span>
+    <button class="hx-rtheme" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch theme">${ic('sun')}<span data-theme-label hidden>Dark mode</span></button>
+  </div>
+</div></header>
+<main class="hx-rmain">
+${main}
+</main>
+<footer class="hx-rfoot"><div class="hx-rfoot-in">
+  ${ic('heart')}
+  <p><b>Need help?</b> Contact the agency that enrolled you. Nobody from Hapax or any agency will ever ask for your PIN or activation code.</p>
+</div></footer>
+${clientIcons(["userCheck", "ban", "coins", "warn", "out", "mail"])}
+<script src="assets/poseidon.js"></script>
+${scripts}
+<script src="assets/hapax.js"></script>
+</body>
+</html>`
+
+export { chip, pill, tile, card, cardHead, stat, metric, row, info, empty, top, appPage, recipientPage }

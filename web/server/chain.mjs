@@ -83,19 +83,41 @@ export function chain(config) {
     tx = rpc.assembleTransaction(tx, sim).build()
     tx.sign(kp)
     const sent = await server.sendTransaction(tx)
+    // Rejected before reaching the ledger: nothing happened, safe to retry.
     if (sent.status === 'ERROR') throw new Error(`send failed: ${sent.errorResult?.result().switch().name ?? 'unknown'}`)
+    // From here the transaction may be on the ledger, so failures are marked
+    // `sent` and never retried: a second enrol would read "already enrolled".
+    const afterSend = (message) => Object.assign(new Error(message), { sent: true })
     for (let i = 0; i < 30; i++) {
-      const got = await server.getTransaction(sent.hash)
+      const got = await server.getTransaction(sent.hash).catch(() => ({ status: 'NOT_FOUND' }))
       if (got.status === 'SUCCESS') {
         return { hash: sent.hash, value: got.returnValue ? scValToNative(got.returnValue) : null }
       }
-      if (got.status === 'FAILED') throw new Error(`transaction failed: ${sent.hash}`)
+      if (got.status === 'FAILED') throw afterSend(`transaction failed: ${sent.hash}`)
       await new Promise((r) => setTimeout(r, 1000))
     }
-    throw new Error(`timed out waiting for ${sent.hash}`)
+    throw afterSend(`timed out waiting for ${sent.hash}`)
   }
 
-  const call = (kp, method, ...args) => serial(kp.publicKey(), () => submit(kp, registry.call(method, ...args)))
+  /*
+    Testnet RPC occasionally answers "Account not found" or drops a request
+    for an account that plainly exists, then works a second later. Retry
+    those; a contract error ("already enrolled", "already claimed") is a real
+    answer and is returned at once.
+  */
+  const withRetry = async (job, tries = 3) => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await job()
+      } catch (e) {
+        if (e instanceof ContractError || e.sent || attempt >= tries) throw e
+        console.warn(`[hapax] retrying after: ${e.message}`)
+        await new Promise((r) => setTimeout(r, 1500 * attempt))
+      }
+    }
+  }
+
+  const call = (kp, method, ...args) => serial(kp.publicKey(), () => withRetry(() => submit(kp, registry.call(method, ...args))))
 
   async function read(method, ...args) {
     const source = config.readSource

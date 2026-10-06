@@ -263,7 +263,7 @@ const cta = () => `<section class="hx-section"><div class="shell">
     <div class="hx-cta-btns">
       <a class="w-btn hx-btn-light" href="agency.html?a=a">${ic('building')} Agency A</a>
       <a class="w-btn hx-btn-ghost" href="agency.html?a=b">${ic('building')} Agency B</a>
-      <a class="w-btn hx-btn-ghost" href="claim.html">${ic('phone')} Recipient</a>
+      <a class="w-btn hx-btn-ghost" href="claim.html">${ic('phone')} Try it as a recipient</a>
     </div>
   </div>
 </div></section>`
