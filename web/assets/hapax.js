@@ -74,6 +74,7 @@
     paid: ['Claim paid', 'coins', 'good'],
     'duplicate-claim': ['Second claim blocked', 'ban', 'bad'],
     rejected: ['Claim rejected', 'warn', 'bad'],
+    resent: ['Invite resent', 'mail', ''],
   }
   const ICONS = window.HAPAX_ICONS || {}
   const tile = (name, tone) =>
@@ -142,7 +143,7 @@
       const idNumber = $('idn').value.trim()
       const dob = $('dob').value
       const email = $('em').value.trim()
-      for (const k of ['enrol-ok', 'enrol-dup', 'enrol-err', 'next-box']) show(k, false)
+      for (const k of ['enrol-ok', 'enrol-dup', 'enrol-err', 'next-box', 'resend-row']) show(k, false)
       btn.disabled = true
       const label = btn.innerHTML
       btn.textContent = 'Enrolling on Stellar…'
@@ -165,6 +166,7 @@
           $('dob').value = ''
         } else {
           show('enrol-dup')
+          show('resend-row')
         }
         poll()
       } catch (e) {
@@ -173,6 +175,32 @@
       } finally {
         btn.disabled = false
         btn.innerHTML = label
+      }
+    })
+
+    $('resend-btn')?.addEventListener('click', async () => {
+      const btn = $('resend-btn')
+      const body = { agency: me, idNumber: $('idn').value.trim(), dob: $('dob').value, email: $('em').value.trim() }
+      show('enrol-err', false)
+      btn.disabled = true
+      try {
+        const r = await api('/api/resend', body)
+        const box = $('enrol-ok').querySelector('p')
+        if (r.status === 'sent') {
+          box.textContent = r.emailed ? `New activation code sent to ${r.sentTo}.` : r.testCode ? `Test address: new activation code ${r.testCode}.` : 'The invite email could not be sent; check the email settings.'
+          show('enrol-dup', false)
+          show('resend-row', false)
+          show('enrol-ok')
+        } else {
+          $('enrol-err').querySelector('p').textContent = r.status === 'already-active' ? 'This person has already activated and set a PIN. They sign in with their ID and PIN.' : 'The ID number and date of birth do not match an enrolment awaiting activation.'
+          show('enrol-err')
+        }
+        poll()
+      } catch (e) {
+        $('enrol-err').querySelector('p').textContent = e.message
+        show('enrol-err')
+      } finally {
+        btn.disabled = false
       }
     })
   }

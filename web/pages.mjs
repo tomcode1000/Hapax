@@ -47,7 +47,7 @@ const agency = () =>
   <div class="ap-stack">
     ${card(`
       ${cardHead('Enrol a person', `<span class="hx-head-note">${ic('lock')} ID never stored</span>`)}
-      <form class="ap-pad hx-form" data-h="enrol-form" style="padding-top:0">
+      <form class="ap-pad hx-form" data-h="enrol-form" style="padding-top:0" novalidate>
         <label class="hx-label" for="idn">National ID number</label>
         <div class="ap-field">${ic('id')}<input id="idn" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 20934815" data-h="idn" aria-describedby="idn-note"/></div>
         <p class="hx-note" id="idn-note">Turned into the person's secret by the enrolment service. Only a commitment goes on-chain.</p>
@@ -62,6 +62,10 @@ const agency = () =>
       <div class="ap-pad" style="padding-top:0">
         ${info('checkCircle', 'Enrolled', '', 'good', ' data-h="enrol-ok" hidden')}
         ${info('ban', 'Already enrolled', 'This person is already on the shared list, enrolled by an agency. That is all Hapax tells you.', 'warn', ' data-h="enrol-dup" hidden')}
+        <div class="hx-resend" data-h="resend-row" hidden>
+          <span>Their invite never arrived, or the code expired?</span>
+          <button class="ap-second" type="button" data-h="resend-btn">${ic('mail')} Resend the invite</button>
+        </div>
         ${info('warn', 'Could not enrol', '', 'bad', ' data-h="enrol-err" hidden')}
         <div class="hx-next" data-h="next-box" hidden>
           <span>${ic('phone')} What the person does next</span>

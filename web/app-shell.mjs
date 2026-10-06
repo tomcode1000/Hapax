@@ -91,7 +91,7 @@ ${side(current)}
 ${main}
 </main>
 </div>
-${clientIcons(["userCheck", "ban", "coins", "warn", "out"])}
+${clientIcons(["userCheck", "ban", "coins", "warn", "out", "mail"])}
 <script src="assets/poseidon.js"></script>
 ${scripts}
 <script src="assets/hapax.js"></script>

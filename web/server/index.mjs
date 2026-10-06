@@ -127,6 +127,50 @@ const validPin = (v) => /^\d{4,6}$/.test(String(v ?? ''))
 const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v ?? '')) && String(v).length <= 254
 const maskEmail = (e) => e.replace(/^(.)[^@]*(@.).*(\.[^.]+)$/, '$1•••$2•••$3')
 
+/**
+ * Issues a fresh activation code for a record and emails it. Only the code's
+ * hash is kept, with an expiry; the email address is used and dropped.
+ */
+async function sendInvite(agency, email, rec) {
+  const code = String(randomInt(0, 1_000_000)).padStart(6, '0')
+  const expiresAt = Date.now() + CODE_TTL_MS
+  rec.code = hashOf(code, rec.salt)
+  rec.codeExpires = expiresAt
+  const testOnly = TEST_DOMAIN !== null && String(email).toLowerCase().endsWith(TEST_DOMAIN)
+  let emailed = false
+  if (!testOnly) {
+    const round = await stellar.round(config.round).catch(() => null)
+    const amount = round ? `${Number(round.amount) / 1e7} ${config.asset.code}` : config.asset.code
+    const message = inviteEmail({ agencyName: config.agencies[agency].name, code, expiresAt, amount, claimUrl: `${PUBLIC_URL}/claim` })
+    emailed = await sendMail({ to: email, ...message }).catch((e) => {
+      console.error(`[hapax] ${e.message}`)
+      return false
+    })
+  }
+  return { emailed, sentTo: maskEmail(String(email)), ...(testOnly ? { testCode: code } : {}) }
+}
+
+/**
+ * Resends the invite when the first one never arrived or the code expired.
+ * Only for a person who has not set a PIN yet, and only when the agency
+ * re-enters the same ID number and date of birth: an agency can already
+ * learn "enrolled" by trying to enrol, so this reveals nothing new.
+ */
+async function resend({ agency, idNumber, dob, email }) {
+  if (!signers[agency]) return [400, { error: 'Unknown agency' }]
+  if (!validId(idNumber) || !validDob(dob)) return [400, { error: 'Enter the ID number and date of birth.' }]
+  if (!validEmail(email)) return [400, { error: 'Enter an email address for the invite.' }]
+  const rec = state.records[commitmentOf(secretFor(idNumber, state.pepper)).toString()]
+  if (!rec || !sameHash(hashOf(dob, rec.salt), rec.dob)) return [200, { status: 'no-match' }]
+  if (rec.pin) return [200, { status: 'already-active' }]
+  const invite = await sendInvite(agency, email, rec)
+  rec.fails = 0
+  rec.lockedUntil = 0
+  log({ kind: 'resent', agency, detail: `Invite resent to person #${rec.index + 1}` })
+  await save()
+  return [200, { status: 'sent', ...invite }]
+}
+
 async function enrol({ agency, idNumber, dob, email }) {
   const signer = signers[agency]
   if (!signer) return [400, { error: 'Unknown agency' }]
@@ -145,20 +189,9 @@ async function enrol({ agency, idNumber, dob, email }) {
       kept, with an expiry. The email address is used to send and then
       dropped; it is never stored.
     */
-    const code = String(randomInt(0, 1_000_000)).padStart(6, '0')
-    const expiresAt = Date.now() + CODE_TTL_MS
-    state.records[commitment] = { index, salt, dob: hashOf(dob, salt), code: hashOf(code, salt), codeExpires: expiresAt, pin: null, fails: 0, lockedUntil: 0 }
-    const testOnly = TEST_DOMAIN !== null && String(email).toLowerCase().endsWith(TEST_DOMAIN)
-    let emailed = false
-    if (!testOnly) {
-      const round = await stellar.round(config.round).catch(() => null)
-      const amount = round ? `${Number(round.amount) / 1e7} ${config.asset.code}` : config.asset.code
-      const message = inviteEmail({ agencyName: config.agencies[agency].name, code, expiresAt, amount, claimUrl: `${PUBLIC_URL}/claim` })
-      emailed = await sendMail({ to: email, ...message }).catch((e) => {
-        console.error(`[hapax] ${e.message}`)
-        return false
-      })
-    }
+    const rec = { index, salt, dob: hashOf(dob, salt), code: null, codeExpires: 0, pin: null, fails: 0, lockedUntil: 0 }
+    state.records[commitment] = rec
+    const invite = await sendInvite(agency, email, rec)
     // Drift check off the critical path: logged, never blocks the response.
     stellar
       .root()
@@ -169,7 +202,7 @@ async function enrol({ agency, idNumber, dob, email }) {
       .catch(() => {})
     log({ kind: 'enrolled', agency, detail: `Person #${index + 1} added to the shared list`, hash })
     await save()
-    return [200, { status: 'enrolled', index, hash, emailed, sentTo: maskEmail(String(email)), ...(testOnly ? { testCode: code } : {}) }]
+    return [200, { status: 'enrolled', index, hash, ...invite }]
   } catch (e) {
     if (e instanceof ContractError && e.name === 'AlreadyEnrolled') {
       state.blocked.enrol += 1
@@ -287,8 +320,29 @@ const API = {
   'POST /api/enrol': enrol,
   'POST /api/claim': claim,
   'POST /api/verify': verify,
+  'POST /api/resend': resend,
   'GET /api/state': async () => [200, await snapshot()],
 }
+
+/*
+  A per-address ceiling on the endpoints that check secrets or send email,
+  on top of the per-person lockout. Without it one machine could try PINs
+  across many ID numbers, or use the invite to send mail in bulk.
+*/
+const LIMITS = { '/api/verify': 30, '/api/resend': 10, '/api/enrol': 40 }
+const WINDOW_MS = 10 * 60 * 1000
+const hits = new Map()
+const limited = (ip, path) => {
+  const max = LIMITS[path]
+  if (!max) return false
+  const key = `${ip} ${path}`
+  const now = Date.now()
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS)
+  recent.push(now)
+  hits.set(key, recent)
+  return recent.length > max
+}
+const MAX_BODY = 64 * 1024
 
 /* ----------------------------------------------------------------- server -- */
 
@@ -312,11 +366,20 @@ createServer(async (req, res) => {
   const handler = API[`${req.method} ${url.pathname}`]
   try {
     if (handler) {
+      const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress
+      if (limited(ip, url.pathname)) return send(res, 429, { error: 'Too many attempts from this device. Try again in a few minutes.' })
       let body = {}
       if (req.method === 'POST') {
         let raw = ''
-        for await (const c of req) raw += c
-        body = raw ? JSON.parse(raw) : {}
+        for await (const c of req) {
+          raw += c
+          if (raw.length > MAX_BODY) return send(res, 413, { error: 'Request too large' })
+        }
+        try {
+          body = raw ? JSON.parse(raw) : {}
+        } catch {
+          return send(res, 400, { error: 'Malformed request' })
+        }
       }
       const [code, out] = await handler(body, url.searchParams)
       return send(res, code, out)

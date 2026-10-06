@@ -268,7 +268,7 @@
 .hx-dg-core {
   padding: 26px 24px;
   border-radius: var(--r-xl);
-  background: linear-gradient(160deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, var(--ink)) 100%);
+  background: linear-gradient(160deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #0b1530) 100%);
   color: #fff;
   box-shadow: var(--sh-lg);
 }
@@ -513,7 +513,7 @@
   flex-wrap: wrap;
   padding: 44px 48px;
   border-radius: var(--r-xl);
-  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 50%, var(--ink)) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 50%, #0b1530) 100%);
   color: #fff;
   box-shadow: var(--sh-lg);
 }
@@ -622,7 +622,7 @@
   border-radius: var(--r-xl);
   background:
     radial-gradient(70% 140% at 100% 0%, rgba(255, 255, 255, 0.16) 0%, transparent 60%),
-    linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, var(--ink)) 100%);
+    linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #0b1530) 100%);
   color: #fff;
   box-shadow: var(--sh-md);
 }
@@ -869,7 +869,7 @@
   border-radius: var(--r-xl);
   background:
     radial-gradient(70% 140% at 100% 0%, rgba(255, 255, 255, 0.16) 0%, transparent 60%),
-    linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, var(--ink)) 100%);
+    linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 55%, #0b1530) 100%);
   color: #fff;
   box-shadow: var(--sh-md);
 }
@@ -1469,4 +1469,31 @@
 .hx-foot-link svg.i {
   width: 14px;
   height: 14px;
+}
+
+/*
+  The blue panels keep a deep blue in both themes. In dark mode the accent is
+  lighter, so the panels also start from the light theme's accent; otherwise
+  white text sits on pale blue.
+*/
+[data-theme='dark'] .hx-banner,
+[data-theme='dark'] .hx-claim-hero,
+[data-theme='dark'] .hx-cta,
+[data-theme='dark'] .hx-dg-core {
+  background: linear-gradient(135deg, #1f6feb 0%, #12357a 100%);
+}
+
+.hx-resend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12.8px;
+  color: var(--ink-3);
+}
+
+.hx-again {
+  margin-top: 18px;
 }

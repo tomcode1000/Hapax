@@ -88,7 +88,8 @@ cd web && node server/smoke.mjs
 
 - **Testnet only.** `AID` is a demo token. A real programme would use USDC; the contract takes any token per round.
 - **The enrolment service is trusted.** It holds the *pepper* that turns an ID number into a person's secret, and it checks PINs. Agencies and the public cannot link anyone; the service could. Deriving the secret from a passport chip (zkPassport-style) would remove this.
-- **Activation strength.** ID + date of birth + an emailed code. A production deployment would add an SMS one-time code, as the Stellar Disbursement Platform does.
+- **Activation strength.** ID + date of birth + an emailed code (one use, 7-day expiry; agencies can resend it). A production deployment would add an SMS one-time code, as the Stellar Disbursement Platform does.
+- **Guessing limits.** Five wrong attempts lock a person for 15 minutes, and each device is rate-limited on the endpoints that check secrets or send email. Failures never reveal whether an ID number is enrolled.
 - **The demo service signs for both agencies** with testnet keys, and its API has no agency login. In a real deployment each agency signs from its own wallet.
 - **Trusted setup.** Proving keys come from a setup run once with fresh cryptographic randomness that was never written to disk, not from a public multi-party ceremony. Fine for a demo; production needs a ceremony.
 - **Exact identifiers.** Deduplication relies on a stable ID number. Two different IDs for one person are not caught; fuzzy or biometric matching (see xDup below) is out of scope.

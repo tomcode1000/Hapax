@@ -112,7 +112,7 @@ export const claim = () =>
       <h2 class="ap-h1 ap-h1-lg">Paid</h2>
       <p class="ap-sub" style="margin-inline:auto">The aid is in your own wallet. Anyone can look the payment up, and nobody can tell it was you.</p>
       <a class="ap-more" data-h="tx-link" href="#" target="_blank" rel="noopener">Open the public record ${ic('out')}</a>
-      <button class="ap-second" type="button" data-h="again" style="margin-top:18px">${ic('building')} Try to claim again through the other agency</button>
+      <div class="hx-again"><button class="ap-second" type="button" data-h="again">${ic('building')} Try to claim again through the other agency</button></div>
     </div>
 
     <div class="ap-centre" data-h="already" hidden>

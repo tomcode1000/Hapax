@@ -50,8 +50,13 @@ const email = 'smoke@example.test' // reserved domain: never mailed, code return
 
 const enrolled = await api('/api/enrol', { agency: 'a', idNumber: id, dob, email })
 check('enrol at A', enrolled.status, 'enrolled')
-const code = enrolled.testCode
+const firstCode = enrolled.testCode
 check('same person at B', (await api('/api/enrol', { agency: 'b', idNumber: id, dob, email })).status, 'already')
+check('resend with wrong DOB', (await api('/api/resend', { agency: 'b', idNumber: id, dob: '1990-01-01', email })).status, 'no-match')
+const resent = await api('/api/resend', { agency: 'b', idNumber: id, dob, email })
+check('resend the invite', resent.status, 'sent')
+const code = resent.testCode
+if (firstCode !== code) check('old code stops working', (await api('/api/verify', { idNumber: id, dob, code: firstCode, newPin: pin })).status, 'no-match')
 check('sign in before PIN is set', (await api('/api/verify', { idNumber: id, pin })).status, 'no-match')
 check('activate with wrong DOB', (await api('/api/verify', { idNumber: id, dob: '1990-01-01', code, newPin: pin })).status, 'no-match')
 check('activate without the emailed code', (await api('/api/verify', { idNumber: id, dob, newPin: pin })).status, 'no-match')
@@ -63,24 +68,35 @@ check('unknown ID', (await api('/api/verify', { idNumber: '99999999', pin })).st
 const v = await api('/api/verify', { idNumber: id, pin })
 check('right PIN', v.status, 'ok')
 
+check('resend after activation', (await api('/api/resend', { agency: 'a', idNumber: id, dob, email })).status, 'already-active')
+
 const { asset } = await api('/api/state')
+const proveFor = (address) =>
+  snarkjs.groth16.fullProve(
+    {
+      root: v.root,
+      nullifier: poseidon2([BigInt(v.secret), BigInt(v.roundId)]).toString(),
+      roundId: v.roundId,
+      recipient: field(address),
+      secret: v.secret,
+      pathElements: v.pathElements,
+      pathIndices: v.pathIndices,
+    },
+    join(dist, 'hapax_claim.wasm'),
+    join(dist, 'hapax_claim.zkey'),
+  )
+
+// A funded wallet with no AID trustline: refused cleanly, nothing consumed.
+const bare = Keypair.random().publicKey()
+await fetch(`https://friendbot.stellar.org/?addr=${bare}`)
+const bareProof = await proveFor(bare)
+const bareClaim = await api('/api/claim', { via: 'a', recipient: bare, ...bareProof })
+check('claim to a wallet with no AID trustline', `${bareClaim.status}:${bareClaim.reason}`, 'rejected:NoTrustline')
+
 const recipient = await ownWallet(asset)
 console.log('      own wallet', recipient)
-
 console.time('      prove')
-const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-  {
-    root: v.root,
-    nullifier: poseidon2([BigInt(v.secret), BigInt(v.roundId)]).toString(),
-    roundId: v.roundId,
-    recipient: field(recipient),
-    secret: v.secret,
-    pathElements: v.pathElements,
-    pathIndices: v.pathIndices,
-  },
-  join(dist, 'hapax_claim.wasm'),
-  join(dist, 'hapax_claim.zkey'),
-)
+const { proof, publicSignals } = await proveFor(recipient)
 console.timeEnd('      prove')
 check('claim via B', (await api('/api/claim', { via: 'b', recipient, proof, publicSignals })).status, 'paid')
 check('claim again via A', (await api('/api/claim', { via: 'a', recipient, proof, publicSignals })).status, 'already')
