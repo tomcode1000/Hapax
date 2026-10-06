@@ -1,0 +1,25 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node render.mjs",
+    "start": "node server/index.mjs",
+    "dev": "node render.mjs && node server/index.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@stellar/freighter-api": "^6.0.1",
+    "@stellar/stellar-sdk": "^17.2.1",
+    "poseidon-lite": "^0.3.0",
+    "snarkjs": "^0.7.6"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "lucide-static": "^1.52.0"
+  },
+  "type": "module"
+}

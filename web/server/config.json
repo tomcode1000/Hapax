@@ -1,0 +1,13 @@
+{
+  "rpc": "https://soroban-testnet.stellar.org",
+  "network": "Test SDF Network ; September 2015",
+  "registry": "CBTXHQLCYAXU5KBZ7R77UJMRJDOO6RXARDYCORRFWAD5WOFHEGSALHGQ",
+  "token": "CCCPKMHU657KNGMBJGMRZA2XGS5X6TBPVT6JEVROXYTVHGISMPLDC7DI",
+  "asset": { "code": "AID", "issuer": "GCBQG6AHWZE3JX5COSRBOYKG6XQKZUNMMTSI5TNRNWJ6TLGIAJ2LPHXP" },
+  "round": 1,
+  "agencies": {
+    "a": { "name": "Agency A", "key": "hapax-agency-a", "address": "GCH5EZ5D65SHV7OAHSLUTQIY2PVD262IISLIVWZUSYWGPEF6BWMEKQ5G" },
+    "b": { "name": "Agency B", "key": "hapax-agency-b", "address": "GBJLNUF5S4ZJQUATZQQCANU47UOYUDSDQ4A47ZPKKJTR26NME6J4BO37" }
+  },
+  "relayer": "hapax-dev"
+}

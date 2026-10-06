@@ -1,0 +1,15 @@
+[package]
+name = "hapax-registry"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]  # wasm: cargo rustc --crate-type cdylib (MinGW cannot link the host cdylib)
+
+[dependencies]
+soroban-sdk = { workspace = true, features = ["hazmat"] }
+soroban-poseidon = { git = "https://github.com/stellar/rs-soroban-poseidon", tag = "v25.0.1" }
+hapax-groth16 = { path = "../groth16" }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils", "hazmat"] }

@@ -1,0 +1,34 @@
+# reference clone (MIT, used for study only)
+ref-zk-vote/
+# build outputs
+target/
+node_modules/
+circuits/build/
+zkcheck/
+dist/
+# local secrets / generated
+.env
+*.ptau
+scripts/testnet.env
+
+# web
+web/server/data/
+web/server/config.json
+
+# Ship what a clone needs to run: the circuit, proving key and verifying key
+# are public by design (only the setup randomness is secret, and it was never
+# written to disk).
+!circuits/build/
+circuits/build/*
+!circuits/build/hapax_claim_js/
+circuits/build/hapax_claim_js/*
+!circuits/build/hapax_claim_js/hapax_claim.wasm
+!circuits/build/hapax_claim.zkey
+!circuits/build/vkey.json
+
+# Public contract IDs and addresses only; no keys.
+!web/server/config.json
+
+# Internal planning notes stay local.
+BRIEF.txt
+ROADMAP.txt
