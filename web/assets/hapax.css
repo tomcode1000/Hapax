@@ -519,6 +519,7 @@
 }
 
 .hx-cta h2 {
+  color: #fff;
   margin: 0 0 8px;
   font-size: clamp(24px, 2.6vw, 32px);
   letter-spacing: -0.03em;
@@ -1450,4 +1451,22 @@
   .hx-step-summary {
     padding-left: 20px;
   }
+}
+
+.hx-foot-note b svg.i {
+  color: var(--accent);
+}
+
+.hx-foot-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.hx-foot-link svg.i {
+  width: 14px;
+  height: 14px;
 }

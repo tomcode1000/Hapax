@@ -274,8 +274,8 @@ const footer = () => `<footer class="hx-foot"><div class="shell hx-foot-in">
     <p>One claim per person, across every agency. Built for Find Your Way on Stellar.</p>
   </div>
   <div class="hx-foot-note">
-    <b>${ic('warn')} What this demo assumes</b>
-    <p>Testnet only. The enrolment service holds one secret value (the pepper) that turns an ID number into a person’s secret, so it is trusted; deriving the secret from a passport chip would remove that. Proving keys come from a single-party setup, not a public ceremony.</p>
+    <b>${ic('globe')} Running on Stellar testnet</b>
+    <p>One enrolment service links ID numbers to the registry; agencies and the public never can. <a class="hx-foot-link" href="https://github.com/tomcode1000/Hapax#trust-assumptions-and-limits-stated-plainly" target="_blank" rel="noopener">Read the security model ${ic('arrow')}</a></p>
   </div>
   <p class="hx-foot-credit">Photographs from Unsplash. Icons from Lucide. UNHCR figures from the Stellar Development Foundation’s Stellar Aid Assist report.</p>
 </div></footer>`
