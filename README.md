@@ -6,7 +6,7 @@ Aid agencies pay the same people from separate lists they cannot safely share, s
 
 Built for **Find Your Way** (Stellar). Running on **Stellar testnet**.
 
-**Live:** https://hapax-ebon.vercel.app · [Agency console](https://hapax-ebon.vercel.app/agency?a=a) · [Claim page](https://hapax-ebon.vercel.app/claim)
+**Live:** https://hapax-aid.vercel.app · [Agency console](https://hapax-aid.vercel.app/agency?a=a) · [Claim page](https://hapax-aid.vercel.app/claim)
 
 ---
 
