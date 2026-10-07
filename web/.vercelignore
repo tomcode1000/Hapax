@@ -1,0 +1,8 @@
+# Never upload secrets or local state
+.env
+.env.*
+!.env.example
+server/data/
+# Rebuilt on Vercel
+node_modules/
+dist/

@@ -33,7 +33,8 @@ import config from './config.json' with { type: 'json' }
 try {
   for (const line of readFileSync(join(import.meta.dirname, '../.env'), 'utf8').split(/\r?\n/)) {
     const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line)
-    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2]
+    // Values may be quoted, as many .env files write them.
+    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2')
   }
 } catch {}
 

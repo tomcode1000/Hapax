@@ -48,7 +48,13 @@ await build({
 })
 
 // The circuit and proving key the phone downloads to make its proof.
-const zk = join(root, '../circuits/build')
+/*
+  The circuit lives in ../circuits/build in the repository. A Vercel CLI
+  deploy uploads only web/, so scripts/predeploy copies the three files into
+  web/zk-build first; whichever exists is used.
+*/
+const { existsSync } = await import('node:fs')
+const zk = existsSync(join(root, '../circuits/build/hapax_claim.zkey')) ? join(root, '../circuits/build') : join(root, 'zk-build')
 await copyFile(join(zk, 'hapax_claim_js/hapax_claim.wasm'), join(out, 'zk/hapax_claim.wasm'))
 await copyFile(join(zk, 'hapax_claim.zkey'), join(out, 'zk/hapax_claim.zkey'))
 

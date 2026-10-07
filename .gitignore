@@ -32,3 +32,9 @@ circuits/build/hapax_claim_js/*
 # Internal planning notes stay local.
 BRIEF.txt
 ROADMAP.txt
+
+# Local docs: demo script and screenshots (they show a test wallet key)
+docs/
+
+# Staged for Vercel CLI deploys (scripts/predeploy.sh)
+web/zk-build/

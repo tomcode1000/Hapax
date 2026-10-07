@@ -6,6 +6,8 @@ Aid agencies pay the same people from separate lists they cannot safely share, s
 
 Built for **Find Your Way** (Stellar). Running on **Stellar testnet**.
 
+**Live:** https://hapax-ebon.vercel.app · [Agency console](https://hapax-ebon.vercel.app/agency?a=a) · [Claim page](https://hapax-ebon.vercel.app/claim)
+
 ---
 
 ## How it works
@@ -69,6 +71,8 @@ npm install
 cp .env.example .env          # add your Brevo key and sender
 npm run dev                   # http://localhost:8790
 ```
+
+Deploying to Vercel: from `web/`, run `bash ../scripts/predeploy.sh`, `vercel link`, `node ../scripts/vercel-env.mjs https://your-app.vercel.app` (sets the secrets as encrypted environment variables, printing none of them), then `vercel deploy --prod`. State lives in Upstash Redis on Vercel and in `web/server/data` locally.
 
 `web/server/config.json` points at the deployed testnet registry. To deploy your own: `bash scripts/testnet_demo.sh` (creates the testnet identities, token and a full demo run), then `bash scripts/deploy_app.sh`.
 
