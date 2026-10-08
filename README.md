@@ -10,6 +10,19 @@ Built for **Find Your Way** (Stellar). Running on **Stellar testnet**.
 
 ---
 
+## See it
+
+| | |
+|---|---|
+| ![Landing page](media/landing.jpg) | ![Agency A enrols a person](media/agency-enrolled.jpg) |
+| **Landing.** One registry, every agency. | **Agency A enrols.** Only a commitment goes on chain; the person is emailed a one-time code. |
+| ![Agency B is blocked](media/agency-duplicate.jpg) | ![The proof is made on the phone](media/claim-proof.jpg) |
+| **Agency B tries the same person.** "Already enrolled", and nothing else. | **The claim, on her phone.** The Groth16 proof is made in the browser. |
+| ![Paid](media/claim-paid.jpg) | ![Second claim refused](media/claim-blocked.jpg) |
+| **Paid.** The contract verifies the proof on chain and pays 50 AID to her own wallet. | **Second claim refused.** The same nullifier at the other agency. |
+
+Every screen above is a real run on Stellar testnet: real enrolments, a real proof, a real payment.
+
 ## How it works
 
 1. **Enrol.** An agency enters the ID number and date of birth it already holds, plus an email for the invite. Only a Poseidon commitment joins the shared on-chain list. If any agency has already enrolled that person, the registry answers "already enrolled" and nothing else.
