@@ -122,9 +122,11 @@
     for (const a of document.querySelectorAll('.ap-nav a'))
       a.toggleAttribute('aria-current', a.getAttribute('href') === `agency.html?a=${me}` || a.getAttribute('href') === `agency?a=${me}`)
 
+    let claimUrl = null
     const poll = async () => {
       try {
         const s = await api('/api/state')
+        claimUrl = s.claimUrl || null
         set('agency-name', s.agencies[me].name)
         document.title = `${s.agencies[me].name} · Hapax`
         renderState(s, me)
@@ -158,7 +160,9 @@
           $('enrol-ok').querySelector('p').textContent = `Added to the shared list as person #${r.index + 1}.${sent}`
           $('em').value = ''
           show('enrol-ok')
-          const url = new URL('claim', location.href).href
+          // The public address the person opens, from the server: not wherever
+          // this console happens to be running.
+          const url = claimUrl || new URL('claim', location.href).href
           const link = $('claim-url')
           if (link) link.textContent = url.replace(/^https?:\/\//, '')
           show('next-box')

@@ -41,6 +41,14 @@ try {
 const keyFor = (envName, cliAlias) => Keypair.fromSecret(process.env[envName] || secretOf(cliAlias))
 
 const TEST_DOMAIN = process.env.HAPAX_ALLOW_TEST_EMAIL === '1' ? '@example.test' : null
+
+/*
+  HAPAX_DEMO_INBOX=1 is for recording the demo video on a local machine: no
+  email is sent, and the activation code is readable from a local-only
+  endpoint. It refuses to switch on anywhere that looks like a deployment.
+*/
+const DEMO_INBOX = process.env.HAPAX_DEMO_INBOX === '1' && !process.env.VERCEL
+const demoInbox = new Map()
 const PUBLIC_URL = (process.env.HAPAX_PUBLIC_URL ?? 'http://localhost:8790').replace(/\/$/, '')
 const CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 const MAX_FAILS = 5
@@ -128,7 +136,12 @@ export async function createApp() {
     rec.codeExpires = expiresAt
     const testOnly = TEST_DOMAIN !== null && String(email).toLowerCase().endsWith(TEST_DOMAIN)
     let emailed = false
-    if (!testOnly) {
+    if (DEMO_INBOX) {
+      // Local video recording only: hold the code for the recorder instead of
+      // emailing it, and report it as sent so the screen reads normally.
+      demoInbox.set(String(email).toLowerCase(), code)
+      emailed = true
+    } else if (!testOnly) {
       const round = await roundInfo()
       const amount = round ? `${Number(round.amount) / 1e7} ${config.asset.code}` : config.asset.code
       const message = inviteEmail({ agencyName: config.agencies[agency].name, code, expiresAt, amount, claimUrl: `${PUBLIC_URL}/claim` })
@@ -149,13 +162,16 @@ export async function createApp() {
     const { commitment } = recordFor(idNumber)
     try {
       const { hash, value: index } = await stellar.enrol(signer, commitment)
-      await store.setCommitment(index, commitment)
-      await store.incr(`byAgency.${agency}`)
       const salt = randomBytes(16).toString('hex')
       const rec = { index, salt, dob: hashOf(dob, salt), code: null, codeExpires: 0, pin: null, fails: 0, lockedUntil: 0 }
       const invite = await sendInvite(agency, email, rec)
-      await store.putRecord(commitment, rec)
-      await log({ kind: 'enrolled', agency, detail: `Person #${index + 1} added to the shared list`, hash })
+      // Independent writes, so they go in parallel: one round trip, not four.
+      await Promise.all([
+        store.setCommitment(index, commitment),
+        store.incr(`byAgency.${agency}`),
+        store.putRecord(commitment, rec),
+        log({ kind: 'enrolled', agency, detail: `Person #${index + 1} added to the shared list`, hash }),
+      ])
       return [200, { status: 'enrolled', index, hash, ...invite }]
     } catch (e) {
       if (e instanceof ContractError && e.name === 'AlreadyEnrolled') {
@@ -279,6 +295,7 @@ export async function createApp() {
       200,
       {
         registry: config.registry,
+        claimUrl: `${PUBLIC_URL}/claim`,
         token: config.token,
         asset: config.asset,
         round: config.round,
@@ -299,6 +316,7 @@ export async function createApp() {
     'POST /api/resend': resend,
     'GET /api/state': snapshot,
   }
+  if (DEMO_INBOX) API['POST /api/demo-inbox'] = async ({ email }) => [200, { code: demoInbox.get(String(email).toLowerCase()) ?? null }]
 
   /** One entry point for both hosts. Returns [status, body]. */
   async function handle(method, path, body, ip) {

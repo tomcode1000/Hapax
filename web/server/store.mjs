@@ -149,8 +149,11 @@ class RedisStore {
   }
 
   async log(entry) {
-    await this.r.lpush(this.k('feed'), JSON.stringify(entry))
-    await this.r.ltrim(this.k('feed'), 0, FEED_MAX - 1)
+    // One round trip: push and trim together.
+    const p = this.r.pipeline()
+    p.lpush(this.k('feed'), JSON.stringify(entry))
+    p.ltrim(this.k('feed'), 0, FEED_MAX - 1)
+    await p.exec()
   }
 
   async feed() {
@@ -159,10 +162,13 @@ class RedisStore {
   }
 
   async hit(key, windowMs) {
+    // One round trip: start the window if it is new, then count.
     const k = this.k(`hits:${key}`)
-    const n = await this.r.incr(k)
-    if (n === 1) await this.r.pexpire(k, windowMs)
-    return n
+    const p = this.r.pipeline()
+    p.set(k, 0, { px: windowMs, nx: true })
+    p.incr(k)
+    const [, n] = await p.exec()
+    return Number(n)
   }
 }
 
